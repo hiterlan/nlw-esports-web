@@ -1,19 +1,31 @@
 import logoImg from "./assets/Logo.svg";
-import { Check, GameController } from "phosphor-react";
+import { CaretDown, Check, GameController } from "phosphor-react";
 import { GameBanner } from "./components/GameBanner";
 import { useEffect, useState } from "react";
 import { Game } from "./types/Game";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { adSchema } from "./components/CreateAdSchema";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Checkbox from "@radix-ui/react-checkbox";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
 import CreateAdBanner from "./components/CreateAdBanner";
 import { Input } from "./components/Form/Input";
-import SelectGame from "./components/SelectGame";
+import * as Select from "@radix-ui/react-select";
 
 function App() {
   const [games, setGames] = useState<Game[]>([]);
   const [weekDays, setWeekDays] = useState<string[]>([]);
-  console.log(weekDays);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(adSchema) });
+  console.log(errors);
+
+  const submitForm = (data: any) => {
+    console.log(data);
+  };
 
   useEffect(() => {
     fetch("http://localhost:3333/games")
@@ -54,16 +66,67 @@ function App() {
             <Dialog.Title className="text-3xl text-white font-black">
               Publique um Anúncio
             </Dialog.Title>
-            <form className="mt-8 flex flex-col gap-4">
+            <form
+              className="mt-8 flex flex-col gap-4"
+              onSubmit={handleSubmit(submitForm)}
+            >
               <div className="flex flex-col gap-2 ">
                 <label htmlFor="game" className="font-semibold">
                   Qual o game?
                 </label>
-                <SelectGame />
+                <Select.Root>
+                  <Select.SelectTrigger
+                    id="game"
+                    name="game"
+                    aria-label="Game"
+                    itemRef={"...register('game')"}
+                    className="bg-zinc-900 py-3 px-4 rounded text-small flex justify-between "
+                  >
+                    <Select.SelectValue placeholder="Selecione um game" />
+                    <Select.SelectIcon>
+                      <CaretDown size={24} className="text-zinc-400" />
+                    </Select.SelectIcon>
+                  </Select.SelectTrigger>
+
+                  <Select.SelectPortal>
+                    <Select.SelectContent className="bg-zinc-900 rounded overflow-hidden">
+                      <Select.SelectScrollUpButton>
+                        <CaretDown size={24} />
+                      </Select.SelectScrollUpButton>
+                      <Select.SelectViewport className="py-2 px-1">
+                        <Select.SelectGroup>
+                          {games.map((game) => {
+                            return (
+                              <Select.SelectItem
+                                key={game.id}
+                                className="flex items-center justify-between py-2 px-3 m-1 bg-zinc-900 text-zinc-500 cursor-pointer rounded hover:bg-zinc-800 hover:text-white"
+                                value={game.id}
+                              >
+                                <Select.SelectItemText>
+                                  {game.title}
+                                </Select.SelectItemText>
+                                <Select.SelectItemIndicator>
+                                  <Check
+                                    size={24}
+                                    className="text-emerald-500"
+                                  />
+                                </Select.SelectItemIndicator>
+                              </Select.SelectItem>
+                            );
+                          })}
+                        </Select.SelectGroup>
+                      </Select.SelectViewport>
+                    </Select.SelectContent>
+                  </Select.SelectPortal>
+                </Select.Root>
               </div>
               <div className="flex flex-col">
                 <label htmlFor="name">Seu nome (ou nickname)</label>
-                <Input id="name" placeholder="Como te chamam dentro do game?" />
+                <Input
+                  id="name"
+                  itemRef={"...register('nickname')"}
+                  placeholder="Como te chamam dentro do game?"
+                />
               </div>
               <div className="grid grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2">
@@ -72,11 +135,16 @@ function App() {
                     id="yearsPlaying"
                     placeholder="Tudo bem ser ZERO"
                     type="number"
+                    itemRef={"...register('yearsPlaying')"}
                   />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label htmlFor="discord">Qual seu Discord?</label>
-                  <Input id="discord" placeholder="Usuário#0000" />
+                  <Input
+                    id="discord"
+                    placeholder="Usuário#0000"
+                    itemRef={"...register('discord')"}
+                  />
                 </div>
               </div>
               <div className="flex gap-6">
@@ -87,6 +155,7 @@ function App() {
                     className="grid grid-cols-4 gap-2"
                     onValueChange={setWeekDays}
                     value={weekDays}
+                    itemRef={"...register('weekDays')"}
                   >
                     <ToggleGroup.Item
                       value="0"
@@ -149,13 +218,26 @@ function App() {
                 <div className="flex flex-col gap-2 flex-1">
                   <label htmlFor="hoursStart">Qual horário do dia</label>
                   <div className="grid grid-cols-2 gap-2">
-                    <Input type="time" id="hoursStart" placeholder="De" />
-                    <Input type="time" id="hoursEnd" placeholder="Até" />
+                    <Input
+                      type="time"
+                      id="hoursStart"
+                      placeholder="De"
+                      itemRef={"...register('hourStart')"}
+                    />
+                    <Input
+                      type="time"
+                      id="hoursEnd"
+                      placeholder="Até"
+                      itemRef={"...register('hourEnd')"}
+                    />
                   </div>
                 </div>
               </div>
               <label className="mt-2 flex gap-2 text-sm items-center">
-                <Checkbox.Root className="w-6 h-6 p-1 rounded bg-zinc-900">
+                <Checkbox.Root
+                  className="w-6 h-6 p-1 rounded bg-zinc-900"
+                  itemRef={"...register('useVoiceChannel')"}
+                >
                   <Checkbox.Indicator>
                     <Check className="w-4 h-4 text-emerald-400" />
                   </Checkbox.Indicator>
